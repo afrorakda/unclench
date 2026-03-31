@@ -15,7 +15,7 @@
             --accent: #eee;
             --input-bg: #fafafa;
             --radius: 15px;
-            /* 認識可能な「安心感」のある薄緑色に変更 */
+            /* 憲法を柔軟に解釈した「安心の薄緑」 */
             --relax-bg: #f0f9f0; 
         }
 
@@ -29,11 +29,11 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             overflow: hidden;
-            /* 戻りは2秒かけて余韻を残す */
+            /* 指を離した時：白へ2秒かけて戻る */
             transition: background-color 2s ease;
         }
 
-        /* ホールド中：3秒かけて白から薄緑へ */
+        /* ホールド中：3秒かけて薄緑へ */
         body.relaxing {
             background-color: var(--relax-bg);
             transition: background-color 3s ease-out;
