@@ -15,6 +15,7 @@
             --accent: #eee;
             --input-bg: #fafafa;
             --radius: 15px;
+            --relax-bg: #f0f0f0; /* 認識可能なライトグレー */
         }
 
         body {
@@ -27,7 +28,14 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             overflow: hidden;
-            transition: background-color 0.8s ease; /* 背景色遷移用 */
+            /* 背景色の遷移設定：戻りは2秒かけてゆっくり */
+            transition: background-color 2s ease;
+        }
+
+        /* ホールド中の背景遷移：3秒かけてじわっと変化 */
+        body.relaxing {
+            background-color: var(--relax-bg);
+            transition: background-color 3s ease-in-out;
         }
 
         .container {
@@ -78,6 +86,7 @@
             -webkit-appearance: none;
             user-select: none;
             -webkit-user-select: none;
+            outline: none;
         }
 
         .relax-btn.active {
@@ -166,29 +175,14 @@
     const statusText = document.getElementById('statusText');
     const relaxBtn = document.getElementById('relaxBtn');
     let startTime;
-    let audioCtx = null;
-
-    // 音声生成関数の初期化（ブラウザ制限回避のためユーザー操作時に生成）
-    function playTone(freq, duration) {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-    }
 
     function startRelax(e) {
         if (e) e.preventDefault();
         startTime = Date.now();
+        
         relaxBtn.classList.add('active');
         relaxBtn.innerText = "RELAXING...";
-        document.body.style.backgroundColor = "#fafafa"; // 背景色の変化
-        if (navigator.vibrate) navigator.vibrate(10); // 触覚
+        document.body.classList.add('relaxing'); // 背景色遷移開始
         
         statusText.style.opacity = "0";
         setTimeout(() => {
@@ -202,19 +196,19 @@
     function endRelax(e) {
         if (e) e.preventDefault();
         const duration = (Date.now() - startTime) / 1000;
+        
         relaxBtn.classList.remove('active');
         relaxBtn.innerText = "HOLD TO RELAX";
-        document.body.style.backgroundColor = "#fff"; // 背景戻す
+        document.body.classList.remove('relaxing'); // 背景色を2秒かけて戻す
 
         statusText.style.opacity = "0";
 
         setTimeout(() => {
+            // 3秒ルールの判定
             if (duration < 3) {
                 statusText.innerText = "Hold a bit longer...";
             } else {
                 statusText.innerText = "Feel better?";
-                playTone(440, 1.5); // 成功時のみ音を鳴らす
-                if (navigator.vibrate) navigator.vibrate([20, 50, 20]);
             }
             statusText.style.opacity = "1";
         }, 300);
@@ -223,6 +217,7 @@
     function showModal() { document.getElementById('modal').style.display = 'flex'; }
     function hideModal() { document.getElementById('modal').style.display = 'none'; }
 
+    // iOS double-tap zoom prevent
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 1) e.preventDefault();
     }, { passive: false });
