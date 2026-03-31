@@ -27,6 +27,7 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             overflow: hidden;
+            transition: background-color 0.8s ease; /* 背景色遷移用 */
         }
 
         .container {
@@ -43,7 +44,6 @@
         h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
         .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; margin-bottom: 30px; }
 
-        /* Main Action Area */
         .visual-area {
             flex-grow: 1;
             display: flex;
@@ -56,7 +56,7 @@
             font-size: 2rem;
             font-weight: 800;
             margin-bottom: 40px;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.5s ease;
             height: 3rem;
         }
 
@@ -66,7 +66,6 @@
             background: var(--main);
             color: #fff;
             border: none;
-            border-radius: 50%; /* 顎の丸みと連動する円形、または憲法通りの15px */
             border-radius: var(--radius); 
             font-size: 1.2rem;
             font-weight: 800;
@@ -75,8 +74,10 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             -webkit-appearance: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .relax-btn.active {
@@ -86,7 +87,6 @@
             box-shadow: none;
         }
 
-        /* Instructions */
         .instruction {
             font-size: 0.9rem;
             color: #999;
@@ -95,14 +95,6 @@
             line-height: 1.6;
         }
 
-        /* iOS Input Standard (For completeness, though not using textarea here) */
-        input, textarea {
-            -webkit-appearance: none;
-            -webkit-text-fill-color: var(--main);
-            opacity: 1 !important;
-        }
-
-        /* Footer & Buttons */
         footer { margin-top: 50px; font-size: 11px; color: #aaa; line-height: 1.8; }
         .footer-btns { margin-top: 30px; }
         .kofi-btn {
@@ -137,7 +129,9 @@
 
     <div class="visual-area">
         <div class="status-text" id="statusText">Teeth Apart?</div>
-        <button class="relax-btn" id="relaxBtn" onmousedown="startRelax()" onmouseup="endRelax()" ontouchstart="startRelax()" ontouchend="endRelax()">
+        <button class="relax-btn" id="relaxBtn" 
+            onmousedown="startRelax()" onmouseup="endRelax()" 
+            ontouchstart="startRelax(event)" ontouchend="endRelax(event)">
             HOLD TO RELAX
         </button>
         <p class="instruction" id="instruction">
@@ -171,38 +165,64 @@
 <script>
     const statusText = document.getElementById('statusText');
     const relaxBtn = document.getElementById('relaxBtn');
-    const instruction = document.getElementById('instruction');
+    let startTime;
+    let audioCtx = null;
 
-    function startRelax() {
+    // 音声生成関数の初期化（ブラウザ制限回避のためユーザー操作時に生成）
+    function playTone(freq, duration) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function startRelax(e) {
+        if (e) e.preventDefault();
+        startTime = Date.now();
         relaxBtn.classList.add('active');
         relaxBtn.innerText = "RELAXING...";
-        statusText.style.opacity = "0";
+        document.body.style.backgroundColor = "#fafafa"; // 背景色の変化
+        if (navigator.vibrate) navigator.vibrate(10); // 触覚
         
+        statusText.style.opacity = "0";
         setTimeout(() => {
             if(relaxBtn.classList.contains('active')) {
                 statusText.innerText = "Drop your jaw";
                 statusText.style.opacity = "1";
             }
-        }, 500);
+        }, 800);
     }
 
-    function endRelax() {
+    function endRelax(e) {
+        if (e) e.preventDefault();
+        const duration = (Date.now() - startTime) / 1000;
         relaxBtn.classList.remove('active');
         relaxBtn.innerText = "HOLD TO RELAX";
-        
+        document.body.style.backgroundColor = "#fff"; // 背景戻す
+
+        statusText.style.opacity = "0";
+
         setTimeout(() => {
-            statusText.style.opacity = "0";
-            setTimeout(() => {
+            if (duration < 3) {
+                statusText.innerText = "Hold a bit longer...";
+            } else {
                 statusText.innerText = "Feel better?";
-                statusText.style.opacity = "1";
-            }, 500);
-        }, 200);
+                playTone(440, 1.5); // 成功時のみ音を鳴らす
+                if (navigator.vibrate) navigator.vibrate([20, 50, 20]);
+            }
+            statusText.style.opacity = "1";
+        }, 300);
     }
 
     function showModal() { document.getElementById('modal').style.display = 'flex'; }
     function hideModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // Prevent zoom on double tap for iOS
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 1) e.preventDefault();
     }, { passive: false });
