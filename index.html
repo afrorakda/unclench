@@ -15,7 +15,8 @@
             --accent: #eee;
             --input-bg: #fafafa;
             --radius: 15px;
-            --relax-bg: #f0f0f0; /* 認識可能なライトグレー */
+            /* 認識可能な「安心感」のある薄緑色に変更 */
+            --relax-bg: #f0f9f0; 
         }
 
         body {
@@ -28,14 +29,14 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             overflow: hidden;
-            /* 背景色の遷移設定：戻りは2秒かけてゆっくり */
+            /* 戻りは2秒かけて余韻を残す */
             transition: background-color 2s ease;
         }
 
-        /* ホールド中の背景遷移：3秒かけてじわっと変化 */
+        /* ホールド中：3秒かけて白から薄緑へ */
         body.relaxing {
             background-color: var(--relax-bg);
-            transition: background-color 3s ease-in-out;
+            transition: background-color 3s ease-out;
         }
 
         .container {
@@ -182,7 +183,7 @@
         
         relaxBtn.classList.add('active');
         relaxBtn.innerText = "RELAXING...";
-        document.body.classList.add('relaxing'); // 背景色遷移開始
+        document.body.classList.add('relaxing'); 
         
         statusText.style.opacity = "0";
         setTimeout(() => {
@@ -199,12 +200,11 @@
         
         relaxBtn.classList.remove('active');
         relaxBtn.innerText = "HOLD TO RELAX";
-        document.body.classList.remove('relaxing'); // 背景色を2秒かけて戻す
+        document.body.classList.remove('relaxing'); 
 
         statusText.style.opacity = "0";
 
         setTimeout(() => {
-            // 3秒ルールの判定
             if (duration < 3) {
                 statusText.innerText = "Hold a bit longer...";
             } else {
@@ -217,7 +217,6 @@
     function showModal() { document.getElementById('modal').style.display = 'flex'; }
     function hideModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // iOS double-tap zoom prevent
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 1) e.preventDefault();
     }, { passive: false });
