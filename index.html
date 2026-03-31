@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UNCLENCH</title>
+    
+    <link rel="icon" href="image_48.png">
+    <link rel="apple-touch-icon" href="image_48.png">
+
+    <style>
+        :root {
+            --main: #333;
+            --bg: #fff;
+            --accent: #eee;
+            --input-bg: #fafafa;
+            --radius: 15px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
+        .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; margin-bottom: 30px; }
+
+        /* Main Action Area */
+        .visual-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .status-text {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 40px;
+            transition: opacity 0.8s ease;
+            height: 3rem;
+        }
+
+        .relax-btn {
+            width: 200px;
+            height: 200px;
+            background: var(--main);
+            color: #fff;
+            border: none;
+            border-radius: 50%; /* 顎の丸みと連動する円形、または憲法通りの15px */
+            border-radius: var(--radius); 
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-appearance: none;
+        }
+
+        .relax-btn.active {
+            transform: scale(0.95);
+            background: var(--accent);
+            color: var(--main);
+            box-shadow: none;
+        }
+
+        /* Instructions */
+        .instruction {
+            font-size: 0.9rem;
+            color: #999;
+            margin-top: 30px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        /* iOS Input Standard (For completeness, though not using textarea here) */
+        input, textarea {
+            -webkit-appearance: none;
+            -webkit-text-fill-color: var(--main);
+            opacity: 1 !important;
+        }
+
+        /* Footer & Buttons */
+        footer { margin-top: 50px; font-size: 11px; color: #aaa; line-height: 1.8; }
+        .footer-btns { margin-top: 30px; }
+        .kofi-btn {
+            display: inline-block; background: var(--main); color: #fff;
+            padding: 12px 25px; border-radius: var(--radius);
+            text-decoration: none; font-weight: bold; font-size: 14px; margin-bottom: 12px;
+        }
+        .home-btn {
+            display: block; width: 60%; margin: 0 auto; background: var(--accent);
+            color: var(--main); border: none; padding: 10px;
+            border-radius: var(--radius); font-weight: 700; font-size: 13px; cursor: pointer;
+        }
+
+        #modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal-content {
+            background: #fff; width: 85%; max-width: 320px; padding: 30px;
+            border-radius: var(--radius); text-align: left; position: relative;
+        }
+        .close-x { position: absolute; top: 15px; right: 20px; font-size: 20px; color: #ccc; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div>
+        <h1>UNCLENCH</h1>
+        <p class="subtitle">Release your jaw, reset your mind.</p>
+    </div>
+
+    <div class="visual-area">
+        <div class="status-text" id="statusText">Teeth Apart?</div>
+        <button class="relax-btn" id="relaxBtn" onmousedown="startRelax()" onmouseup="endRelax()" ontouchstart="startRelax()" ontouchend="endRelax()">
+            HOLD TO RELAX
+        </button>
+        <p class="instruction" id="instruction">
+            Gently separate your upper and lower teeth.<br>Let your tongue rest.
+        </p>
+    </div>
+
+    <div>
+        <div class="footer-btns">
+            <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn">☕️buy me a coffee</a>
+            <button class="home-btn" onclick="showModal()">Add to Home Screen</button>
+        </div>
+
+        <footer>
+            <div>No login / No tracking / No ads / Browser only</div>
+            <div>Privacy Policy / afrorakda © 2026</div>
+        </footer>
+    </div>
+</div>
+
+<div id="modal" onclick="hideModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-x" onclick="hideModal()">×</span>
+        <h3>📱 Install</h3>
+        <p>Add to your home screen.</p>
+        <p>🍏 <strong>iPhone (Safari):</strong><br>Tap Share, then Add to Home Screen.</p>
+        <p>🤖 <strong>Android (Chrome):</strong><br>Tap Menu (⋮), then Add to Home Screen.</p>
+    </div>
+</div>
+
+<script>
+    const statusText = document.getElementById('statusText');
+    const relaxBtn = document.getElementById('relaxBtn');
+    const instruction = document.getElementById('instruction');
+
+    function startRelax() {
+        relaxBtn.classList.add('active');
+        relaxBtn.innerText = "RELAXING...";
+        statusText.style.opacity = "0";
+        
+        setTimeout(() => {
+            if(relaxBtn.classList.contains('active')) {
+                statusText.innerText = "Drop your jaw";
+                statusText.style.opacity = "1";
+            }
+        }, 500);
+    }
+
+    function endRelax() {
+        relaxBtn.classList.remove('active');
+        relaxBtn.innerText = "HOLD TO RELAX";
+        
+        setTimeout(() => {
+            statusText.style.opacity = "0";
+            setTimeout(() => {
+                statusText.innerText = "Feel better?";
+                statusText.style.opacity = "1";
+            }, 500);
+        }, 200);
+    }
+
+    function showModal() { document.getElementById('modal').style.display = 'flex'; }
+    function hideModal() { document.getElementById('modal').style.display = 'none'; }
+
+    // Prevent zoom on double tap for iOS
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+</script>
+
+</body>
+</html>
